@@ -4,6 +4,7 @@ import webbrowser
 import os
 import sys
 from youtubesearchpython import VideosSearch
+import re
 # Initialize the text-to-speech engine
 engine = pyttsx3.init()
 
@@ -13,6 +14,35 @@ def speak(text):
 
 # Create a Recognizer instance
 recognizer = sr.Recognizer()
+
+def remove_before_word(text,word_to_find):
+
+  # Define the regular expression pattern to find a word before the specified word
+  pattern = r'\b\w+\b(?=\s+' + re.escape(word_to_find) + ')'
+
+  # Use re.sub to replace the word before the specified word with an empty string
+  updated_text = re.sub(pattern, '', text)
+
+  # Remove any extra spaces created by the replacement
+  updated_text = re.sub(r'\s+', ' ', updated_text).strip()
+
+  return updated_text
+
+def search(text,engine):
+ filtered_text=text.replace("search ","")
+ if engine=="youtube" or engine=="google":
+  filtered_text=remove_before_word(filtered_text,f"{engine}")
+  filtered_text=filtered_text.replace(f"{engine}","")
+ if engine=="youtube":
+  speak(f"Searching {filtered_text} on Youtube")
+  filtered_text=filtered_text.replace(" ","+")
+  webbrowser.open(f"https://www.youtube.com/results?search_query={filtered_text}")
+ else:
+  speak(f"Searching {filtered_text}")
+  filtered_text=filtered_text.replace(" ","+")
+  webbrowser.open(f"https://www.google.com/search?q={filtered_text}")
+  
+
 
 def play_on_Youtube(text):
    filtered_text=text.replace("play ","")
@@ -51,6 +81,11 @@ def understandCommand(text):
    open_on_Browser(text)
   elif("play" in text):
    play_on_Youtube(text)
+  elif "search" in text: 
+   words = text.split()
+    # Get the last word. I am doing this to know the search engine
+   last_word = words[-1]
+   search(text,last_word)
   elif(text=="exit"):
    speak("Okay")
    sys.exit()
